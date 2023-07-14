@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ASL TO SPEECH</title>
+    <link rel="shortcut icon" href="#">
+    <style>
+        /* Styling for the body */
+        body {
+            background-color: #f9f9f9;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+    
+        /* Styling for the image container */
+        #imageContainer {
+            display: none;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        /* Styling for the h1 heading */
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 24px;
+        }
+    
+        /* Styling for the audio container */
+        #AudioContainer {
+            text-align: center;
+            display: none;
+            margin-bottom: 20px;
+        }
+    
+        /* Styling for the audio controls */
+        audio {
+            width: 100%;
+            max-width: 400px;
+        }
+    
+        /* Styling for the text container */
+        #TextContainer {
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+        }
+    
+        /* Styling for the prediction text */
+        #text {
+            font-size: 18px;
+            font-weight: bold;
+            border: 2px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #fff;
+            color: #333;
+        }
+    
+        /* Styling for the stop button */
+        button {
+            display: block;
+            margin: 0 auto;
+            background-color: #e02020;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+    
+        /* Hover style for the stop button */
+        button:hover {
+            background-color: #f3efef;
+            color: #e02020;
+            border-color: #e02020;
+        }
+        #stop
+        {
+            display: none;
+        }
+        #main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+
+    </style>
+</head>
+<body>
+    
+    <h1>AMERICAN SIGN LANGUAGE TO SPEECH-AUDIO</h1>
+    <div id="main">
+        <div id="img">
+            <img id="asl" src="https://d.newsweek.com/en/full/1394686/asl-getty-images.webp?w=737&f=991648c2c30074c7b42f25aec96e9e40" alt="HAND SIGNS IMAGE MISSING" width="550" height="550">
+        </div>
+        <div id="imageContainer">
+            <img id="myvideo" width="640" height="480">
+        </div>
+    </div>
+    <br><br>
+    <button id="start" onclick="startImage()">GIVE SIGN</button><br><br>
+
+    <button id="stop" onclick="stopImage()">GET SPEECH</button>
+    
+    <div id="AudioContainer">
+        <h2> AUDIO: </h2>
+        <audio id="myAudio" controls autoplay>
+            <source id="audioSource"  type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
+    <div id="TextContainer">
+        <h2>SPEECH :</h2>
+        <p id="text">
+            {{prediction_text}}
+        </p>
+    </div>
+    
+    
+
+    <script>
+        function stopImage() {
+
+            //hide  image 
+            var asl=document.getElementById("asl");
+            asl.style.display = "none";
+
+            // hide videocontainer
+            var imageContainer = document.getElementById("imageContainer");
+            imageContainer.style.display = "none";
+
+            // hide stop video button
+            var stopButton = document.getElementById("stop");
+            stopButton.style.display = "none";
+
+            // // display start video button
+            // var startButton = document.getElementById("start");
+            // startButton.style.display = "block";
+
+
+            // Make an HTTP request to the Flask route to release capture object
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/stop_image", true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+
+                    // display textcontaioner 
+                    var textcontaioner=document.getElementById("TextContainer");
+                    textcontaioner.style.display="block";
+
+                    // Update the prediction_text dynamically
+                    var predictionText = document.getElementById("text");
+                    predictionText.textContent = xhr.responseText;
+
+                    // Display the audio container
+                    var audioContainer = document.getElementById("AudioContainer");
+                    audioContainer.style.display = "block";
+                    
+                    // Play the audio dynamically
+                    var audioSource = document.getElementById("audioSource");
+                    // var timestamp = Date.now();
+
+                    // audioSource.src = "{{ url_for('static', filename='audio.mp3', timestamp=timestamp) }}";
+                    audioSource.src="{{ url_for('get_audio') }}"
+                    var myAudio = document.getElementById("myAudio");
+                    myAudio.load();
+                    myAudio.play();
+                }
+            };
+            xhr.send();
+        }
+        function startImage() {
+
+
+            //move  image 
+            var asl=document.getElementById("asl");
+            asl.style.marginRight = "200px";
+
+
+            // display videocontainner
+            var imageContainer = document.getElementById("imageContainer");
+            imageContainer.style.display = "block";
+
+            //hide start video button
+            var startButton=document.getElementById("start");
+            startButton.style.display="none";
+
+            // display stop video button
+            var stopButton=document.getElementById("stop");
+            stopButton.style.display="block";
+
+            // hide textcontainer
+            var textcontainer=document.getElementById("TextContainer")
+            textcontainer.style.display="none";
+
+
+            // hide audiocontainer
+            var audiocontainer=document.getElementById("AudioContainer");
+            audiocontainer.style.display="none";
+
+            // Make an HTTP request to the Flask route to reload capture object
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/start_image", true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    // Update the video source dynamically
+                    var myvideo = document.getElementById("myvideo");
+                    //var timestamp = Date.now();
+                    myvideo.src = "{{ url_for('video_feed')}}";
+                }
+            };
+            xhr.send();
+        }       
+    </script>
+</body>
+</html>
